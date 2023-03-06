@@ -1,0 +1,129 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.11.1
+  creationTimestamp: null
+  name: scalers.scaler.buaa.io
+spec:
+  group: scaler.buaa.io
+  names:
+    kind: Scaler
+    listKind: ScalerList
+    plural: scalers
+    singular: scaler
+  scope: Namespaced
+  versions:
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        description: Scaler is the Schema for the scalers API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: ScalerSpec defines the desired state of Scaler
+            properties:
+              algorithm:
+                properties:
+                  algorithm:
+                    type: string
+                  image:
+                    type: string
+                  name:
+                    type: string
+                  port:
+                    format: int32
+                    type: integer
+                  replica:
+                    type: integer
+                  step:
+                    type: string
+                required:
+                - algorithm
+                - image
+                - name
+                - port
+                - replica
+                - step
+                type: object
+              node_metric:
+                properties:
+                  metric:
+                    items:
+                      description: 'EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO
+                        OWN! NOTE: json tags are required.  Any new fields you add
+                        must have json tags for the fields to be serialized.'
+                      properties:
+                        name:
+                          type: string
+                        threshold:
+                          type: string
+                      required:
+                      - name
+                      - threshold
+                      type: object
+                    type: array
+                required:
+                - metric
+                type: object
+              pod_metric:
+                description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
+                  Important: Run "make" to regenerate code after modifying this file'
+                properties:
+                  metric:
+                    items:
+                      description: 'EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO
+                        OWN! NOTE: json tags are required.  Any new fields you add
+                        must have json tags for the fields to be serialized.'
+                      properties:
+                        name:
+                          type: string
+                        threshold:
+                          type: string
+                      required:
+                      - name
+                      - threshold
+                      type: object
+                    type: array
+                required:
+                - metric
+                type: object
+              update:
+                properties:
+                  "on":
+                    type: boolean
+                required:
+                - "on"
+                type: object
+            type: object
+          status:
+            description: ScalerStatus defines the observed state of Scaler
+            properties:
+              application_health:
+                type: boolean
+              monitor_health:
+                description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
+                  of cluster Important: Run "make" to regenerate code after modifying
+                  this file'
+                type: boolean
+            required:
+            - application_health
+            - monitor_health
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
