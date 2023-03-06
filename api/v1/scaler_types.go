@@ -44,10 +44,13 @@ type Update struct {
 	On bool `json:"on"`
 }
 type Application struct {
-	Name    string `json:"name"`
-	Image   string `json:"image"`
-	Replica int    `json:"replica"`
-	Ports   []Port `json:"ports"`
+	Name      string            `json:"name"`
+	NameSpace string            `json:"nameSpace"`
+	Image     string            `json:"image"`
+	Replica   int32             `json:"replica"`
+	Ports     []Port            `json:"ports"`
+	Labels    map[string]string `json:"labels"`
+	//TODO
 }
 type Port struct {
 	Name string `json:"name,omitempty"`
