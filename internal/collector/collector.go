@@ -1,48 +1,33 @@
 package collector
 
 import (
-	"context"
-	"fmt"
-	"github.com/prometheus/client_golang/api"
-	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
-	"github.com/prometheus/common/model"
 	"time"
 )
 
-type Collector interface {
+type MetricSeries struct {
+	Metrics   []float64
+	TimeStamp []time.Time
+	Length    int
 }
 
-func main() {
-	// 连接到 Prometheus 服务器
-	client, err := api.NewClient(api.Config{
-		Address: "http://prometheus-server:9090",
-	})
-	if err != nil {
-		panic(err)
-	}
-
-	// 实例化一个 V1API 客户端
-	v1api := v1.NewAPI(client)
-
-	// 定义查询表达式
-	query := "100 - (avg by (instance) (irate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)"
-
-	// 设置查询的时间范围
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	// 执行查询
-	result, warnings, err := v1api.Query(ctx, query, time.Now())
-	if err != nil {
-		panic(err)
-	}
-	if len(warnings) > 0 {
-		fmt.Println("Warnings:", warnings)
-	}
-
-	// 处理查询结果
-	vector := result.(model.Vector)
-	for _, sample := range vector {
-		fmt.Printf("CPU Usage: %v%%\n", sample.Value)
-	}
+type Collector interface {
+	SetServerAddress(url string) error
+	SetMetricType(metricType string) error
+	SetCapacity(capacity int)
+	ListMetricTypes() []string
+	GetMetrics() error
+	AddCustomMetrics(name, query string)
+	SyncData() error
+}
+type CollectorBase struct {
+	//contain two slices which have the same length
+	Data MetricSeries
+	//key: the name of  supported metric type,value: the promql to get key metric type
+	MetricQL map[string]string
+	//if the data length is larger than this value, the data will be synced to database
+	Capacity int
+	//prometheus server url
+	ServerAddress string
+	//the metric can be got when GetMetrics is called
+	CurrentMetric string
 }
