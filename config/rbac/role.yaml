@@ -6,7 +6,7 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
-  - scaler.my.domain
+  - scaler.buaa.io
   resources:
   - scalers
   verbs:
@@ -18,13 +18,13 @@ rules:
   - update
   - watch
 - apiGroups:
-  - scaler.my.domain
+  - scaler.buaa.io
   resources:
   - scalers/finalizers
   verbs:
   - update
 - apiGroups:
-  - scaler.my.domain
+  - scaler.buaa.io
   resources:
   - scalers/status
   verbs:

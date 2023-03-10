@@ -49,7 +49,7 @@ type Application struct {
 	Image     string            `json:"image"`
 	Replica   int32             `json:"replica"`
 	Ports     []Port            `json:"ports"`
-	Labels    map[string]string `json:"labels"`
+	Labels    map[string]string `json:"labels,omitempty"`
 	//TODO
 }
 type Port struct {
@@ -61,10 +61,11 @@ type Port struct {
 type ScalerSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	PodMetric  PodMetric  `json:"pod_metric,omitempty"`
-	NodeMetric NodeMetric `json:"node_metric,omitempty"`
-	Predictor  Predictor  `json:"algorithm,omitempty"`
-	Update     Update     `json:"update,omitempty"`
+	PodMetric   PodMetric   `json:"pod_metric,omitempty"`
+	NodeMetric  NodeMetric  `json:"node_metric,omitempty"`
+	Predictor   Predictor   `json:"algorithm,omitempty"`
+	Application Application `json:"application,omitempty"`
+	Update      Update      `json:"update,omitempty"`
 	// Foo is an example field of Scaler. Edit scaler_types.go to remove/update
 
 }
@@ -73,8 +74,8 @@ type ScalerSpec struct {
 type ScalerStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	MonitorHealth     bool `json:"monitor_health"`
-	ApplicationHealth bool `json:"application_health"`
+	MonitorHealth     bool `json:"monitor-health"`
+	ApplicationHealth bool `json:"application-health"`
 }
 
 //+kubebuilder:object:root=true

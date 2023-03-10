@@ -12,7 +12,7 @@ metadata:
   name: scaler-editor-role
 rules:
 - apiGroups:
-  - scaler.my.domain
+  - scaler.buaa.io
   resources:
   - scalers
   verbs:
@@ -24,7 +24,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - scaler.my.domain
+  - scaler.buaa.io
   resources:
   - scalers/status
   verbs:

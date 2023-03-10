@@ -12,7 +12,7 @@ metadata:
   name: scaler-viewer-role
 rules:
 - apiGroups:
-  - scaler.my.domain
+  - scaler.buaa.io
   resources:
   - scalers
   verbs:
@@ -20,7 +20,7 @@ rules:
   - list
   - watch
 - apiGroups:
-  - scaler.my.domain
+  - scaler.buaa.io
   resources:
   - scalers/status
   verbs:

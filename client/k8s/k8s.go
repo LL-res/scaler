@@ -6,11 +6,13 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/retry"
 	scalerv1 "scaler/api/v1"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"time"
 )
@@ -22,16 +24,35 @@ type K8sClient struct {
 func New() (*K8sClient, error) {
 	conf, err := clientcmd.BuildConfigFromFlags("", clientcmd.RecommendedHomeFile)
 	if err != nil {
+		log.Log.Error(err, "new client")
 		return nil, err
 	}
 	clientSet, err := kubernetes.NewForConfig(conf)
 	if err != nil {
+		log.Log.Error(err, "new client")
 		return nil, err
 	}
 	return &K8sClient{clientSet: clientSet}, nil
 }
-
-func (k *K8sClient) CreateDeployment(app scalerv1.Application) error {
+func (k *K8sClient) CreateNamespace(namespace string) (*corev1.Namespace, error) {
+	// Check if Namespace exists and create it if it doesn't
+	_, err := k.clientSet.CoreV1().Namespaces().Get(context.Background(), namespace, metav1.GetOptions{})
+	ns := new(corev1.Namespace)
+	if errors.IsNotFound(err) {
+		ns, err = k.clientSet.CoreV1().Namespaces().Create(context.Background(), &corev1.Namespace{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: namespace,
+			},
+		}, metav1.CreateOptions{})
+		if err != nil {
+			return nil, err
+		}
+	} else if err != nil {
+		return nil, err
+	}
+	return ns, nil
+}
+func (k *K8sClient) CreateDeployment(app scalerv1.Application) (*appsv1.Deployment, error) {
 	ports := make([]corev1.ContainerPort, 0)
 	for _, p := range app.Ports {
 		ports = append(ports, corev1.ContainerPort{
@@ -94,7 +115,7 @@ func (k *K8sClient) CreateDeployment(app scalerv1.Application) error {
 		return err
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	//等待 deployment 创建成功
@@ -102,11 +123,11 @@ func (k *K8sClient) CreateDeployment(app scalerv1.Application) error {
 
 	log.Log.Info("deployment created")
 
-	return nil
+	return deployment, nil
 
 }
 
-func (k *K8sClient) CreateService(app scalerv1.Application) error {
+func (k *K8sClient) CreateService(app scalerv1.Application) (*corev1.Service, error) {
 	servicePorts := make([]corev1.ServicePort, 0)
 	for _, p := range app.Ports {
 		servicePorts = append(servicePorts, corev1.ServicePort{
@@ -151,12 +172,39 @@ func (k *K8sClient) CreateService(app scalerv1.Application) error {
 		return err
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// 等待 service 创建成功
 	time.Sleep(5 * time.Second)
 
 	log.Log.Info("service created")
+	return service, nil
+}
+func (k *K8sClient) RunPipeline(scaler *scalerv1.Scaler, scheme *runtime.Scheme) error {
+	ns, err := k.CreateNamespace(scaler.Spec.Application.NameSpace)
+	if err != nil {
+		return err
+	}
+	err = controllerutil.SetControllerReference(scaler, ns, scheme)
+	if err != nil {
+		return err
+	}
+	deploy, err := k.CreateDeployment(scaler.Spec.Application)
+	if err != nil {
+		return err
+	}
+	err = controllerutil.SetControllerReference(scaler, deploy, scheme)
+	if err != nil {
+		return err
+	}
+	svc, err := k.CreateService(scaler.Spec.Application)
+	if err != nil {
+		return err
+	}
+	err = controllerutil.SetControllerReference(scaler, svc, scheme)
+	if err != nil {
+		return err
+	}
 	return nil
 }

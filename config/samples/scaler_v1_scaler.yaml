@@ -1,4 +1,4 @@
-apiVersion: scaler.my.domain/v1
+apiVersion: scaler.buaa.io/v1
 kind: Scaler
 metadata:
   labels:
@@ -9,4 +9,11 @@ metadata:
     app.kubernetes.io/created-by: scaler
   name: scaler-sample
 spec:
-  # TODO(user): Add fields here
+  application:
+    name: first-scaler
+    nameSpace: mytest
+    image: nginx
+    replica: 2
+    ports:
+      - name: my-port
+        port: 8080

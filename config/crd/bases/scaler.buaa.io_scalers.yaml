@@ -58,6 +58,40 @@ spec:
                 - replica
                 - step
                 type: object
+              application:
+                properties:
+                  image:
+                    type: string
+                  labels:
+                    additionalProperties:
+                      type: string
+                    type: object
+                  name:
+                    type: string
+                  nameSpace:
+                    type: string
+                  ports:
+                    items:
+                      properties:
+                        name:
+                          type: string
+                        port:
+                          format: int32
+                          type: integer
+                      required:
+                      - port
+                      type: object
+                    type: array
+                  replica:
+                    format: int32
+                    type: integer
+                required:
+                - image
+                - name
+                - nameSpace
+                - ports
+                - replica
+                type: object
               node_metric:
                 properties:
                   metric:

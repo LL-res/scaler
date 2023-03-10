@@ -18,8 +18,8 @@ package controllers
 
 import (
 	"context"
-
 	"k8s.io/apimachinery/pkg/runtime"
+	k8s_client "scaler/client/k8s"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -33,9 +33,9 @@ type ScalerReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-//+kubebuilder:rbac:groups=scaler.my.domain,resources=scalers,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=scaler.my.domain,resources=scalers/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=scaler.my.domain,resources=scalers/finalizers,verbs=update
+//+kubebuilder:rbac:groups=scaler.buaa.io,resources=scalers,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=scaler.buaa.io,resources=scalers/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=scaler.buaa.io,resources=scalers/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -49,7 +49,21 @@ type ScalerReconciler struct {
 func (r *ScalerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = log.FromContext(ctx)
 
-	// TODO(user): your logic here
+	k8sClient, err := k8s_client.New()
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	instance := &scalerv1.Scaler{}
+	err = r.Get(context.Background(), req.NamespacedName, instance)
+	if err != nil {
+		log.Log.Error(err, "unable to fetch scaler instance")
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+	_, err = k8sClient.CreateDeployment(instance.Spec.Application)
+	if err != nil {
+		log.Log.Error(err, "unable to create scaler deployment")
+		return ctrl.Result{}, err
+	}
 
 	return ctrl.Result{}, nil
 }
